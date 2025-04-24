@@ -45,7 +45,10 @@ jobs:
         run: dotnet run --project _atom/_atom.csproj PackFileLogging --skip --headless
   
   TestFileLogging:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        job-runs-on: [ windows-latest, ubuntu-latest, macos-latest ]
+    runs-on: ${{ matrix.job-runs-on }}
     steps:
       
       - name: Checkout
@@ -59,9 +62,12 @@ jobs:
       - name: TestFileLogging
         id: TestFileLogging
         run: dotnet run --project _atom/_atom.csproj TestFileLogging --skip --headless
+        env:
+          job-runs-on: ${{ matrix.job-runs-on }}
+          build-slice: ${{ matrix.job-runs-on }}
       
       - name: Upload DecSm.Extensions.Logging.File.UnitTests
         uses: actions/upload-artifact@v4
         with:
-          name: DecSm.Extensions.Logging.File.UnitTests
+          name: DecSm.Extensions.Logging.File.UnitTests-${{ matrix.job-runs-on }}
           path: "${{ github.workspace }}/.github/publish/DecSm.Extensions.Logging.File.UnitTests"
