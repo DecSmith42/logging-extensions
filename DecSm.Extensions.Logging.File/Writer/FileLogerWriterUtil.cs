@@ -36,7 +36,7 @@ internal static class FileLogWriterUtil
         string logFilePath)
     {
         var now = timeProvider.GetLocalNow();
-        var fileCreatedAt = fileInfo.CreationTime;
+        var fileCreatedAt = ((DateTimeOffset)fileInfo.CreationTimeUtc).ToOffset(timeProvider.LocalTimeZone.BaseUtcOffset);
 
         var rollingTimeSpan = rolloverInterval switch
         {
