@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+<Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -7,10 +7,10 @@
 
   <!--  Packages-->
   <ItemGroup>
-    <PackageReference Include="DecSm.Atom" Version="1.0.0-rc.425"/>
-    <PackageReference Include="DecSm.Atom.Module.Dotnet" Version="1.0.0-rc.425"/>
-    <PackageReference Include="DecSm.Atom.Module.GithubWorkflows" Version="1.0.0-rc.425"/>
-    <PackageReference Include="DecSm.Atom.Module.GitVersion" Version="1.0.0-rc.425"/>
+    <PackageReference Include="DecSm.Atom" Version="1.0.0-rc.428"/>
+    <PackageReference Include="DecSm.Atom.Module.Dotnet" Version="1.0.0-rc.428"/>
+    <PackageReference Include="DecSm.Atom.Module.GithubWorkflows" Version="1.0.0-rc.428"/>
+    <PackageReference Include="DecSm.Atom.Module.GitVersion" Version="1.0.0-rc.428"/>
   </ItemGroup>
 
   <!--  Analyzers-->
