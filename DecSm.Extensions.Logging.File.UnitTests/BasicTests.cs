@@ -30,7 +30,7 @@ public sealed class BasicTests : TestBase
                 .File
                 .ReadAllText(logPath)
                 .ShouldBe("""
-                          [2020-01-01 10:00:00.000 +10:00 INF DecSm.Extensions.Logging.File.UnitTests.BasicTests] Hello, world!
+                          [2020-01-01 11:00:00.000 +11:00 INF DecSm.Extensions.Logging.File.UnitTests.BasicTests] Hello, world!
 
                           """));
     }
@@ -57,7 +57,7 @@ public sealed class BasicTests : TestBase
                 .File
                 .ReadAllText(logPath)
                 .ShouldBe("""
-                          [2020-01-01 10:00:00.000 +10:00 INF DecSm.Extensions.Logging.File.UnitTests.BasicTests] Hello, world!
+                          [2020-01-01 11:00:00.000 +11:00 INF DecSm.Extensions.Logging.File.UnitTests.BasicTests] Hello, world!
 
                           """));
     }
