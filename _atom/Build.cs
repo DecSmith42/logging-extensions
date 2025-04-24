@@ -22,7 +22,13 @@ internal partial class Build : DefaultBuildDefinition,
             Triggers = [GitPullRequestTrigger.IntoMain, ManualTrigger.Empty],
             StepDefinitions =
             [
-                Commands.SetupBuildInfo, Commands.PackFileLogging.WithSuppressedArtifactPublishing, Commands.TestFileLogging,
+                Commands.SetupBuildInfo,
+                Commands.PackFileLogging.WithSuppressedArtifactPublishing,
+                Commands
+                    .TestFileLogging
+                    .WithAddedMatrixDimensions(new MatrixDimension(nameof(IJobRunsOn.JobRunsOn),
+                        [IJobRunsOn.WindowsLatestTag, IJobRunsOn.UbuntuLatestTag, IJobRunsOn.MacOsLatestTag]))
+                    .WithAddedOptions(GithubRunsOn.SetByMatrix),
             ],
             WorkflowTypes = [Github.WorkflowType],
         },
@@ -33,7 +39,11 @@ internal partial class Build : DefaultBuildDefinition,
             [
                 Commands.SetupBuildInfo,
                 Commands.PackFileLogging,
-                Commands.TestFileLogging,
+                Commands
+                    .TestFileLogging
+                    .WithAddedMatrixDimensions(new MatrixDimension(nameof(IJobRunsOn.JobRunsOn),
+                        [IJobRunsOn.WindowsLatestTag, IJobRunsOn.UbuntuLatestTag, IJobRunsOn.MacOsLatestTag]))
+                    .WithAddedOptions(GithubRunsOn.SetByMatrix),
                 Commands.PushToNuget.WithAddedOptions(WorkflowSecretInjection.Create(Params.NugetApiKey)),
                 Commands.PushToRelease.WithGithubTokenInjection(),
             ],
