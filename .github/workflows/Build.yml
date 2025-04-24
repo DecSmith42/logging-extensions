@@ -1,0 +1,126 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  release:
+    types: [ released ]
+  
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  
+  SetupBuildInfo:
+    runs-on: ubuntu-latest
+    outputs:
+      build-id: ${{ steps.SetupBuildInfo.outputs.build-id }}
+      build-version: ${{ steps.SetupBuildInfo.outputs.build-version }}
+      build-timestamp: ${{ steps.SetupBuildInfo.outputs.build-timestamp }}
+    steps:
+      
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      
+      - name: SetupBuildInfo
+        id: SetupBuildInfo
+        run: dotnet run --project _atom/_atom.csproj SetupBuildInfo --skip --headless
+  
+  PackFileLogging:
+    runs-on: ubuntu-latest
+    steps:
+      
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      
+      - name: PackFileLogging
+        id: PackFileLogging
+        run: dotnet run --project _atom/_atom.csproj PackFileLogging --skip --headless
+      
+      - name: Upload DecSm.Extensions.Logging.File
+        uses: actions/upload-artifact@v4
+        with:
+          name: DecSm.Extensions.Logging.File
+          path: "${{ github.workspace }}/.github/publish/DecSm.Extensions.Logging.File"
+  
+  TestFileLogging:
+    runs-on: ubuntu-latest
+    steps:
+      
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      
+      - name: TestFileLogging
+        id: TestFileLogging
+        run: dotnet run --project _atom/_atom.csproj TestFileLogging --skip --headless
+      
+      - name: Upload DecSm.Extensions.Logging.File.UnitTests
+        uses: actions/upload-artifact@v4
+        with:
+          name: DecSm.Extensions.Logging.File.UnitTests
+          path: "${{ github.workspace }}/.github/publish/DecSm.Extensions.Logging.File.UnitTests"
+  
+  PushToNuget:
+    needs: [ PackFileLogging ]
+    runs-on: ubuntu-latest
+    steps:
+      
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      
+      - name: Download DecSm.Extensions.Logging.File
+        uses: actions/download-artifact@v4
+        with:
+          name: DecSm.Extensions.Logging.File
+          path: "${{ github.workspace }}/.github/artifacts/DecSm.Extensions.Logging.File"
+      
+      - name: PushToNuget
+        id: PushToNuget
+        run: dotnet run --project _atom/_atom.csproj PushToNuget --skip --headless
+        env:
+          nuget-push-api-key: ${{ secrets.NUGET_PUSH_API_KEY }}
+  
+  PushToRelease:
+    needs: [ PackFileLogging ]
+    runs-on: ubuntu-latest
+    steps:
+      
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      
+      - name: Download DecSm.Extensions.Logging.File
+        uses: actions/download-artifact@v4
+        with:
+          name: DecSm.Extensions.Logging.File
+          path: "${{ github.workspace }}/.github/artifacts/DecSm.Extensions.Logging.File"
+      
+      - name: PushToRelease
+        id: PushToRelease
+        run: dotnet run --project _atom/_atom.csproj PushToRelease --skip --headless
+        env:
+          github-token: ${{ secrets.GITHUB_TOKEN }}

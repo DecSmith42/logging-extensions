@@ -1,0 +1,32 @@
+<Project>
+
+  <PropertyGroup>
+    <Product>Logging Extensions</Product>
+    <Authors>Declan Smith</Authors>
+
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
+    <PackageDescription>A collection of extensions for the Microsoft.Extensions.Logging namespace.</PackageDescription>
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+
+    <LangVersion>13</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);CS1591;NU5104;RCS1001;RCS1003;RCS1123;</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <DebugType>embedded</DebugType>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../images/icon.png" Pack="true" PackagePath="\"/>
+    <None Include="../readme.md" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+
+</Project>
