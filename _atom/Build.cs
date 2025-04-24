@@ -1,4 +1,6 @@
-﻿namespace Atom;
+﻿using Atom.Targets;
+
+namespace Atom;
 
 [BuildDefinition]
 [GenerateEntryPoint]

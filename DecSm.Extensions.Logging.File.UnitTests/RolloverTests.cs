@@ -50,7 +50,7 @@ public sealed class RolloverTests : TestBase
                 .File
                 .ReadAllText(logPath)
                 .ShouldBe("""
-                          [2020-01-01 10:00:00.000 +10:00 INF DecSm.Extensions.Logging.File.UnitTests.RolloverTests] Hello, world!
+                          [2020-01-01 11:00:00.000 +11:00 INF DecSm.Extensions.Logging.File.UnitTests.RolloverTests] Hello, world!
 
                           """));
     }
@@ -94,7 +94,7 @@ public sealed class RolloverTests : TestBase
                 .File
                 .ReadAllText(logPath)
                 .ShouldBe("""
-                          [2020-01-01 10:00:00.000 +10:00 INF DecSm.Extensions.Logging.File.UnitTests.RolloverTests] Hello, world!
+                          [2020-01-01 11:00:00.000 +11:00 INF DecSm.Extensions.Logging.File.UnitTests.RolloverTests] Hello, world!
 
                           """));
     }
@@ -103,15 +103,13 @@ public sealed class RolloverTests : TestBase
     public void Logger_WhenNewLogIsBeyondRollingInterval_RollsLog()
     {
         // Arrange
-        const string logExistingText = "a\n";
+        const string logExistingText = "\n";
 
         var logPath = GetLogPath();
         FileSystem.Directory.CreateDirectory(FileSystem.Path.GetDirectoryName(logPath)!);
         FileSystem.File.WriteAllText(logPath, logExistingText);
 
-        FileSystem.File.SetCreationTime(logPath,
-            TimeProvider.GetLocalNow()
-                .DateTime);
+        FileSystem.File.SetCreationTimeUtc(logPath, TimeProvider.UtcNow.DateTime);
 
         var logger = CreateBuilderWithLogger<RolloverTests>(c => c.RolloverInterval = FileRolloverInterval.Day);
 
@@ -142,7 +140,7 @@ public sealed class RolloverTests : TestBase
                 .File
                 .ReadAllText(logPath)
                 .ShouldBe("""
-                          [2020-01-02 10:00:00.000 +10:00 INF DecSm.Extensions.Logging.File.UnitTests.RolloverTests] Hello, world!
+                          [2020-01-02 11:00:00.000 +11:00 INF DecSm.Extensions.Logging.File.UnitTests.RolloverTests] Hello, world!
 
                           """));
     }
@@ -197,7 +195,7 @@ public sealed class RolloverTests : TestBase
                     "Logs",
                     $"{AppDomain.CurrentDomain.FriendlyName}.log"))
                 .ShouldBe("""
-                          [2020-01-11 10:00:00.000 +10:00 INF DecSm.Extensions.Logging.File.UnitTests.RolloverTests] Hello, world!
+                          [2020-01-11 11:00:00.000 +11:00 INF DecSm.Extensions.Logging.File.UnitTests.RolloverTests] Hello, world!
 
                           """));
     }

@@ -1,4 +1,5 @@
-﻿global using DecSm.Atom.Build.Definition;
+﻿global using DecSm.Atom;
+global using DecSm.Atom.Build.Definition;
 global using DecSm.Atom.Module.Dotnet;
 global using DecSm.Atom.Module.GithubWorkflows;
 global using DecSm.Atom.Module.GithubWorkflows.Generation.Options;

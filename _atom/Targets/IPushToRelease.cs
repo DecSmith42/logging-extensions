@@ -1,4 +1,4 @@
-﻿namespace Atom;
+﻿namespace Atom.Targets;
 
 [TargetDefinition]
 internal partial interface IPushToRelease : IGithubReleaseHelper
