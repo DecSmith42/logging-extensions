@@ -1,18 +1,10 @@
-﻿using Atom.Targets;
-
-namespace Atom;
+﻿namespace Atom;
 
 [BuildDefinition]
 [GenerateEntryPoint]
-internal partial class Build : DefaultBuildDefinition,
-    IGithubWorkflows,
-    IGitVersion,
-    IPackFileLogging,
-    ITestFileLogging,
-    IPushToNuget,
-    IPushToRelease
+internal partial class Build : DefaultBuildDefinition, IGithubWorkflows, IGitVersion, ITargets
 {
-    public override IReadOnlyList<IWorkflowOption> DefaultWorkflowOptions =>
+    public override IReadOnlyList<IWorkflowOption> GlobalWorkflowOptions =>
     [
         UseGitVersionForBuildId.Enabled, new SetupDotnetStep("9.0.x"),
     ];
@@ -24,13 +16,15 @@ internal partial class Build : DefaultBuildDefinition,
             Triggers = [GitPullRequestTrigger.IntoMain, ManualTrigger.Empty],
             StepDefinitions =
             [
-                Commands.SetupBuildInfo,
-                Commands.PackFileLogging.WithSuppressedArtifactPublishing,
-                Commands
+                Targets.SetupBuildInfo,
+                Targets.PackFileLogging.WithSuppressedArtifactPublishing,
+                Targets
                     .TestFileLogging
-                    .WithAddedMatrixDimensions(new MatrixDimension(nameof(IJobRunsOn.JobRunsOn),
-                        [IJobRunsOn.WindowsLatestTag, IJobRunsOn.UbuntuLatestTag, IJobRunsOn.MacOsLatestTag]))
-                    .WithAddedOptions(GithubRunsOn.SetByMatrix),
+                    .WithMatrixDimensions(new MatrixDimension(nameof(IJobRunsOn.JobRunsOn))
+                    {
+                        Values = [IJobRunsOn.WindowsLatestTag, IJobRunsOn.UbuntuLatestTag, IJobRunsOn.MacOsLatestTag],
+                    })
+                    .WithOptions(GithubRunsOn.SetByMatrix),
             ],
             WorkflowTypes = [Github.WorkflowType],
         },
@@ -39,15 +33,17 @@ internal partial class Build : DefaultBuildDefinition,
             Triggers = [GitPushTrigger.ToMain, GithubReleaseTrigger.OnReleased, ManualTrigger.Empty],
             StepDefinitions =
             [
-                Commands.SetupBuildInfo,
-                Commands.PackFileLogging,
-                Commands
+                Targets.SetupBuildInfo,
+                Targets.PackFileLogging,
+                Targets
                     .TestFileLogging
-                    .WithAddedMatrixDimensions(new MatrixDimension(nameof(IJobRunsOn.JobRunsOn),
-                        [IJobRunsOn.WindowsLatestTag, IJobRunsOn.UbuntuLatestTag, IJobRunsOn.MacOsLatestTag]))
-                    .WithAddedOptions(GithubRunsOn.SetByMatrix),
-                Commands.PushToNuget.WithAddedOptions(WorkflowSecretInjection.Create(Params.NugetApiKey)),
-                Commands.PushToRelease.WithGithubTokenInjection(),
+                    .WithMatrixDimensions(new MatrixDimension(nameof(IJobRunsOn.JobRunsOn))
+                    {
+                        Values = [IJobRunsOn.WindowsLatestTag, IJobRunsOn.UbuntuLatestTag, IJobRunsOn.MacOsLatestTag],
+                    })
+                    .WithOptions(GithubRunsOn.SetByMatrix),
+                Targets.PushToNuget.WithOptions(WorkflowSecretInjection.Create(Params.NugetApiKey)),
+                Targets.PushToRelease.WithGithubTokenInjection(),
             ],
             WorkflowTypes = [Github.WorkflowType],
         },
