@@ -110,6 +110,7 @@ jobs:
   PushToRelease:
     needs: [ PackFileLogging, SetupBuildInfo ]
     runs-on: ubuntu-latest
+    if: contains(needs.SetupBuildInfo.outputs.build-version, '-') == false
     steps:
       
       - name: Checkout
