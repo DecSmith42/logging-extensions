@@ -10,9 +10,14 @@ internal sealed class DirectFileLogWriter(IFileSystem fileSystem, TimeProvider t
         // No-op
     }
 
-    public void Log(string log)
+    public void Log(string log, LogLevel logLevel)
     {
+        #if NET8_0_OR_GREATER
+        var config = getCurrentConfig();
+        #else
         var config = getCurrentConfig()!;
+        #endif
+
         var logLengthBytes = Encoding.UTF8.GetByteCount(log);
 
         var attempt = 0;
@@ -30,7 +35,10 @@ internal sealed class DirectFileLogWriter(IFileSystem fileSystem, TimeProvider t
                 if (!fileSystem.Directory.Exists(logsDirectory))
                     fileSystem.Directory.CreateDirectory(logsDirectory);
 
-                var logName = config.LogName ?? AppDomain.CurrentDomain.FriendlyName;
+                var logName = config.PerLevelLogName.TryGetValue(logLevel, out var name)
+                    ? name ?? AppDomain.CurrentDomain.FriendlyName
+                    : config.LogName ?? AppDomain.CurrentDomain.FriendlyName;
+
                 var logFilePath = fileSystem.Path.Combine(logsDirectory, $"{logName}.log");
 
                 var fileInfo = fileSystem.FileInfo.New(logFilePath);

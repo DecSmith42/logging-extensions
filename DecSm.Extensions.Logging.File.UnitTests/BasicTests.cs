@@ -7,9 +7,11 @@ public sealed class BasicTests : TestBase
     public void SetUp()
     {
         FileSystem = new();
+        DirectFileLoggerProvider.FileSystem = FileSystem;
         BufferedFileLoggerProvider.FileSystem = FileSystem;
 
         TimeProvider = new();
+        DirectFileLoggerProvider.TimeProvider = TimeProvider;
         BufferedFileLoggerProvider.TimeProvider = TimeProvider;
     }
 
@@ -58,6 +60,60 @@ public sealed class BasicTests : TestBase
                 .ReadAllText(logPath)
                 .ShouldBe("""
                           [2020-01-01 11:00:00.000 +11:00 INF DecSm.Extensions.Logging.File.UnitTests.BasicTests] Hello, world!
+
+                          """));
+    }
+
+    [TestCase(true)]
+    [TestCase(false)]
+    public void Logger_Logs_To_Level_Defined_File(bool buffered)
+    {
+        // Arrange
+        var dbgLogPath = GetLogPath(null, $"{AppDomain.CurrentDomain.FriendlyName}_DBG");
+        var errLogPath = GetLogPath(null, $"{AppDomain.CurrentDomain.FriendlyName}_ERR");
+
+        var logger = CreateBuilderWithLogger<BasicTests>(config =>
+            {
+                config.PerLevelLogName = new()
+                {
+                    { LogLevel.Trace, $"{AppDomain.CurrentDomain.FriendlyName}_DBG" },
+                    { LogLevel.Debug, $"{AppDomain.CurrentDomain.FriendlyName}_DBG" },
+                    { LogLevel.Information, $"{AppDomain.CurrentDomain.FriendlyName}_DBG" },
+                    { LogLevel.Warning, $"{AppDomain.CurrentDomain.FriendlyName}_DBG" },
+                    { LogLevel.Error, $"{AppDomain.CurrentDomain.FriendlyName}_ERR" },
+                    { LogLevel.Critical, $"{AppDomain.CurrentDomain.FriendlyName}_ERR" },
+                };
+            },
+            buffered);
+
+        // Act
+        logger.LogTrace("Hello, world!");
+        logger.LogDebug("Hello, world!");
+        logger.LogInformation("Hello, world!");
+        logger.LogWarning("This is an error message.");
+        logger.LogError("This is an error message.");
+        logger.LogCritical("This is an error message.");
+        StopApp();
+
+        // Assert
+        FileSystem.ShouldSatisfyAllConditions(fs => fs.File.Exists(dbgLogPath),
+            fs => fs
+                .File
+                .ReadAllText(dbgLogPath)
+                .ShouldBe("""
+                          [2020-01-01 11:00:00.000 +11:00 TRC DecSm.Extensions.Logging.File.UnitTests.BasicTests] Hello, world!
+                          [2020-01-01 11:00:00.000 +11:00 DBG DecSm.Extensions.Logging.File.UnitTests.BasicTests] Hello, world!
+                          [2020-01-01 11:00:00.000 +11:00 INF DecSm.Extensions.Logging.File.UnitTests.BasicTests] Hello, world!
+                          [2020-01-01 11:00:00.000 +11:00 WRN DecSm.Extensions.Logging.File.UnitTests.BasicTests] This is an error message.
+
+                          """),
+            fs => fs.File.Exists(errLogPath),
+            fs => fs
+                .File
+                .ReadAllText(errLogPath)
+                .ShouldBe("""
+                          [2020-01-01 11:00:00.000 +11:00 ERR DecSm.Extensions.Logging.File.UnitTests.BasicTests] This is an error message.
+                          [2020-01-01 11:00:00.000 +11:00 CRT DecSm.Extensions.Logging.File.UnitTests.BasicTests] This is an error message.
 
                           """));
     }

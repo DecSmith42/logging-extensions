@@ -1,5 +1,6 @@
 ﻿namespace DecSm.Extensions.Logging.File.Provider;
 
+[PublicAPI]
 [ProviderAlias("File")]
 internal sealed class DirectFileLoggerProvider(IOptionsMonitor<FileLoggerConfiguration> config)
     : FileLoggerProvider(config), ILoggerProvider

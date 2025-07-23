@@ -18,7 +18,11 @@ internal abstract class FileLoggerProvider
     {
         LogWriter.Start();
 
+        #if NET8_0_OR_GREATER
+        return _loggers.GetOrAdd(categoryName, name => new(name, LogWriter));
+        #else
         return _loggers.GetOrAdd(categoryName, name => new(name, LogWriter))!;
+        #endif
     }
 
     protected FileLoggerConfiguration GetCurrentConfig() =>

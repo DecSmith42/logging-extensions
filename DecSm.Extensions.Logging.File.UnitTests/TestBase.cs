@@ -2,31 +2,35 @@
 
 public abstract class TestBase
 {
-    protected IDisposable? DisposableApp;
+    private IDisposable? _disposableApp;
     protected MockFileSystem FileSystem = null!;
     protected TestTimeProvider TimeProvider = null!;
 
-    protected string GetLogPath(string? timestamp = null) =>
+    protected string GetLogPath(string? timestamp = null, string? customName = null) =>
         FileSystem.Path.Combine(FileSystem.Directory.GetCurrentDirectory(),
             "Logs",
             timestamp is not null
-                ? $"{AppDomain.CurrentDomain.FriendlyName}_{timestamp}.log"
-                : $"{AppDomain.CurrentDomain.FriendlyName}.log");
+                ? customName is not null
+                    ? $"{customName}_{timestamp}.log"
+                    : $"{AppDomain.CurrentDomain.FriendlyName}_{timestamp}.log"
+                : customName is not null
+                    ? $"{customName}.log"
+                    : $"{AppDomain.CurrentDomain.FriendlyName}.log");
 
-    protected ILogger CreateBuilderWithLogger<T>(Action<FileLoggerConfiguration>? configure = null)
+    protected ILogger CreateBuilderWithLogger<T>(Action<FileLoggerConfiguration>? configure = null, bool buffered = true)
     {
         var builder = Host.CreateApplicationBuilder();
         builder.Logging.ClearProviders();
         builder.Logging.SetMinimumLevel(LogLevel.Trace);
 
         if (configure is not null)
-            builder.Logging.AddFile(configure);
+            builder.Logging.AddFile(configure, buffered);
         else
-            builder.Logging.AddFile();
+            builder.Logging.AddFile(buffered);
 
         var app = builder.Build();
 
-        DisposableApp = app;
+        _disposableApp = app;
 
         return app.Services.GetRequiredService<ILogger<T>>();
     }
@@ -34,6 +38,6 @@ public abstract class TestBase
     protected void StopApp()
     {
         Thread.Sleep(100);
-        DisposableApp?.Dispose();
+        _disposableApp?.Dispose();
     }
 }
