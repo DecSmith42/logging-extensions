@@ -17,6 +17,8 @@ public sealed class FileLoggerConfiguration
 
     public string? LogName { get; set; } = DefaultLogName;
 
+    public Dictionary<LogLevel, string?> PerLevelLogName { get; set; } = [];
+
     public long FileSizeLimitBytes { get; set; } = DefaultFileSizeLimitBytes;
 
     public FileRolloverInterval RolloverInterval { get; set; } = DefaultRollingInterval;

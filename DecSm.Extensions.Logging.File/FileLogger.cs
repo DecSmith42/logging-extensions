@@ -42,6 +42,6 @@ internal sealed class FileLogger(string name, IFileLogWriter logWriter) : ILogge
 
         var log = $"[{now} {logLevelCode} {name}] {logMessage}{Environment.NewLine}";
 
-        logWriter.Log(log);
+        logWriter.Log(log, logLevel);
     }
 }

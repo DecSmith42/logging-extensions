@@ -6,5 +6,5 @@ internal interface IFileLogWriter : IDisposable
 
     void Start();
 
-    void Log(string log);
+    void Log(string log, LogLevel logLevel);
 }

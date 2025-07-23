@@ -6,7 +6,7 @@ internal sealed class BufferedFileLogWriter(
     Func<FileLoggerConfiguration> getCurrentConfig
 ) : IFileLogWriter
 {
-    private readonly Channel<string> _logEntryChannel = Channel.CreateUnbounded<string>(new()
+    private readonly Channel<LogEvent> _logEntryChannel = Channel.CreateUnbounded<LogEvent>(new()
     {
         SingleReader = true,
         SingleWriter = false,
@@ -31,7 +31,7 @@ internal sealed class BufferedFileLogWriter(
         _writerThread.Start();
     }
 
-    public void Log(string log)
+    public void Log(string log, LogLevel logLevel)
     {
         var attempt = 0;
 
@@ -39,7 +39,7 @@ internal sealed class BufferedFileLogWriter(
         {
             try
             {
-                _logEntryChannel.Writer.TryWrite(log);
+                _logEntryChannel.Writer.TryWrite(new(log, logLevel));
 
                 break;
             }
@@ -63,7 +63,7 @@ internal sealed class BufferedFileLogWriter(
     }
 
     private static void RunBackgroundThread(
-        ChannelReader<string> reader,
+        ChannelReader<LogEvent> reader,
         IFileSystem fileSystem,
         TimeProvider timeProvider,
         Func<FileLoggerConfiguration> getCurrentConfig,
@@ -71,95 +71,116 @@ internal sealed class BufferedFileLogWriter(
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            var config = getCurrentConfig()!;
+            var logsByLevel = new Dictionary<LogLevel, List<string>>();
+            var logsLengthBytesByLevel = new Dictionary<LogLevel, int>();
 
-            var logs = new List<string>();
-            var logsLengthBytes = 0;
+            #if NET8_0_OR_GREATER
+            var config = getCurrentConfig();
+            #else
+            var config = getCurrentConfig()!;
+            #endif
 
             var readCount = 0;
             const int maxReadCount = 10;
 
             while (reader.TryRead(out var item) && readCount < maxReadCount)
             {
-                logs.Add(item);
-                logsLengthBytes += Encoding.UTF8.GetByteCount(item);
+                logsByLevel.TryAdd(item.LogLevel, []);
+
+                logsByLevel[item.LogLevel]
+                    .Add(item.Message);
+
+                logsLengthBytesByLevel.TryAdd(item.LogLevel, 0);
+                logsLengthBytesByLevel[item.LogLevel] += Encoding.UTF8.GetByteCount(item.Message);
+
                 readCount++;
             }
 
-            if (logs.Count == 0)
+            if (logsByLevel.Count == 0)
                 continue;
 
-            var attempt = 0;
-
-            while (true)
+            foreach (var logLevel in logsByLevel.Keys)
             {
-                try
-                {
-                    var logsDirectoryName = config.LogDirectory;
+                var logs = logsByLevel[logLevel];
+                var logsLengthBytes = logsLengthBytesByLevel[logLevel];
 
-                    var logsDirectory = fileSystem.Path.IsPathRooted(logsDirectoryName)
-                        ? logsDirectoryName
-                        : fileSystem.Path.Combine(fileSystem.Directory.GetCurrentDirectory(), logsDirectoryName);
+                var logsDirectoryName = config.LogDirectory;
 
-                    if (!fileSystem.Directory.Exists(logsDirectory))
-                        fileSystem.Directory.CreateDirectory(logsDirectory);
+                var logsDirectory = fileSystem.Path.IsPathRooted(logsDirectoryName)
+                    ? logsDirectoryName
+                    : fileSystem.Path.Combine(fileSystem.Directory.GetCurrentDirectory(), logsDirectoryName);
 
-                    var logName = config.LogName ?? AppDomain.CurrentDomain.FriendlyName;
-                    var logFilePath = fileSystem.Path.Combine(logsDirectory, $"{logName}.log");
+                if (!fileSystem.Directory.Exists(logsDirectory))
+                    fileSystem.Directory.CreateDirectory(logsDirectory);
 
-                    var fileInfo = fileSystem.FileInfo.New(logFilePath);
-                    var newFileCreated = !fileInfo.Exists;
+                var logName = config.PerLevelLogName.TryGetValue(logLevel, out var name)
+                    ? name ?? AppDomain.CurrentDomain.FriendlyName
+                    : config.LogName ?? AppDomain.CurrentDomain.FriendlyName;
 
-                    if (!newFileCreated && fileInfo.Length + logsLengthBytes >= config.FileSizeLimitBytes)
-                    {
-                        FileLogWriterUtil.RollOnFileSize(fileSystem, timeProvider, logsDirectory, logName, logFilePath);
-                        newFileCreated = true;
-                    }
+                var logFilePath = fileSystem.Path.Combine(logsDirectory, $"{logName}.log");
 
-                    if (!newFileCreated && config.RolloverInterval is not FileRolloverInterval.Infinite)
-                        newFileCreated = FileLogWriterUtil.RollOnTimeInterval(fileSystem,
-                            timeProvider,
-                            config.RolloverInterval,
-                            fileInfo,
-                            logsDirectory,
-                            logName,
-                            logFilePath);
+                var attempt = 0;
 
-                    if (newFileCreated)
-                        FileLogWriterUtil.PurgeOnTotalSize(fileSystem, config.MaxTotalSizeBytes, logsDirectory, logName);
-
-                    FileLogWriterUtil.WriteToFile(fileSystem, logFilePath, logs);
-
-                    // If we have rolled over the file or are writing for the first time, we want to ensure the
-                    // file has the correct timestamps
-                    if (newFileCreated)
-                    {
-                        fileInfo.Refresh();
-
-                        fileInfo.CreationTimeUtc = fileInfo.LastWriteTimeUtc = fileInfo.LastAccessTimeUtc = timeProvider.GetUtcNow()
-                            .DateTime;
-                    }
-
-                    break;
-                }
-                catch (Exception ex)
+                while (true)
                 {
                     try
                     {
-                        Console.WriteLine(ex);
-                        Debug.WriteLine(ex);
-                    }
-                    catch
-                    {
-                        // Can't do anything more here, better to just continue
-                    }
+                        var fileInfo = fileSystem.FileInfo.New(logFilePath);
+                        var newFileCreated = !fileInfo.Exists;
 
-                    if (attempt >= 5)
+                        if (!newFileCreated && fileInfo.Length + logsLengthBytes >= config.FileSizeLimitBytes)
+                        {
+                            FileLogWriterUtil.RollOnFileSize(fileSystem, timeProvider, logsDirectory, logName, logFilePath);
+                            newFileCreated = true;
+                        }
+
+                        if (!newFileCreated && config.RolloverInterval is not FileRolloverInterval.Infinite)
+                            newFileCreated = FileLogWriterUtil.RollOnTimeInterval(fileSystem,
+                                timeProvider,
+                                config.RolloverInterval,
+                                fileInfo,
+                                logsDirectory,
+                                logName,
+                                logFilePath);
+
+                        if (newFileCreated)
+                            FileLogWriterUtil.PurgeOnTotalSize(fileSystem, config.MaxTotalSizeBytes, logsDirectory, logName);
+
+                        FileLogWriterUtil.WriteToFile(fileSystem, logFilePath, logs);
+
+                        // If we have rolled over the file or are writing for the first time, we want to ensure the
+                        // file has the correct timestamps
+                        if (newFileCreated)
+                        {
+                            fileInfo.Refresh();
+
+                            fileInfo.CreationTimeUtc = fileInfo.LastWriteTimeUtc = fileInfo.LastAccessTimeUtc = timeProvider.GetUtcNow()
+                                .DateTime;
+                        }
+
                         break;
+                    }
+                    catch (Exception ex)
+                    {
+                        try
+                        {
+                            Console.WriteLine(ex);
+                            Debug.WriteLine(ex);
+                        }
+                        catch
+                        {
+                            // Can't do anything more here, better to just continue
+                        }
 
-                    attempt++;
+                        if (attempt >= 5)
+                            break;
+
+                        attempt++;
+                    }
                 }
             }
         }
     }
+
+    private sealed record LogEvent(string Message, LogLevel LogLevel);
 }
