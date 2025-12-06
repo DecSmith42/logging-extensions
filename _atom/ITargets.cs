@@ -16,7 +16,8 @@ internal interface ITargets : IDotnetPackHelper, IDotnetTestHelper, INugetHelper
         d => d
             .DescribedAs("Builds the DecSm.Extensions.Logging.File project into a NuGet package")
             .ProducesArtifact(FileLoggingProjectName)
-            .Executes(async cancellationToken => await DotnetPackProject(new(FileLoggingProjectName), cancellationToken));
+            .Executes(async cancellationToken =>
+                await DotnetPackProject(new(FileLoggingProjectName), cancellationToken));
 
     Target TestFileLogging =>
         d => d

@@ -17,7 +17,9 @@ public abstract class TestBase
                     ? $"{customName}.log"
                     : $"{AppDomain.CurrentDomain.FriendlyName}.log");
 
-    protected ILogger CreateBuilderWithLogger<T>(Action<FileLoggerConfiguration>? configure = null, bool buffered = true)
+    protected ILogger CreateBuilderWithLogger<T>(
+        Action<FileLoggerConfiguration>? configure = null,
+        bool buffered = true)
     {
         var builder = Host.CreateApplicationBuilder();
         builder.Logging.ClearProviders();

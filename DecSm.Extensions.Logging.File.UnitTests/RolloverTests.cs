@@ -188,7 +188,9 @@ public sealed class RolloverTests : TestBase
             fs => fs
                 .Directory
                 .GetFiles(FileSystem.Path.Combine(FileSystem.Directory.GetCurrentDirectory(), "Logs"))
-                .ShouldNotContain(FileSystem.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs", $"{firstLogTimestamp}.log")),
+                .ShouldNotContain(FileSystem.Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                    "Logs",
+                    $"{firstLogTimestamp}.log")),
             fs => fs
                 .File
                 .ReadAllText(FileSystem.Path.Combine(FileSystem.Directory.GetCurrentDirectory(),

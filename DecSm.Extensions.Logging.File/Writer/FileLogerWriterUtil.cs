@@ -17,7 +17,8 @@ internal static class FileLogWriterUtil
                 ? string.Empty
                 : $"_{i}";
 
-            newLogFilePath = fileSystem.Path.Combine(logsDirectory, $"{logName}_{timeProvider.GetLocalNow():yyMMdd-HHmmss}{suffix}.log");
+            newLogFilePath = fileSystem.Path.Combine(logsDirectory,
+                $"{logName}_{timeProvider.GetLocalNow():yyMMdd-HHmmss}{suffix}.log");
 
             if (!fileSystem.File.Exists(newLogFilePath))
                 break;
@@ -36,7 +37,9 @@ internal static class FileLogWriterUtil
         string logFilePath)
     {
         var now = timeProvider.GetLocalNow();
-        var fileCreatedAt = ((DateTimeOffset)fileInfo.CreationTimeUtc).ToOffset(timeProvider.LocalTimeZone.BaseUtcOffset);
+
+        var fileCreatedAt =
+            ((DateTimeOffset)fileInfo.CreationTimeUtc).ToOffset(timeProvider.LocalTimeZone.BaseUtcOffset);
 
         var rollingTimeSpan = rolloverInterval switch
         {
@@ -46,7 +49,9 @@ internal static class FileLogWriterUtil
             FileRolloverInterval.Hour => TimeSpan.FromHours(1),
             FileRolloverInterval.Minute => TimeSpan.FromMinutes(1),
             FileRolloverInterval.Infinite => TimeSpan.MaxValue,
-            _ => throw new ArgumentOutOfRangeException(nameof(rolloverInterval), rolloverInterval, "Invalid rolling interval"),
+            _ => throw new ArgumentOutOfRangeException(nameof(rolloverInterval),
+                rolloverInterval,
+                "Invalid rolling interval"),
         };
 
         if (now - fileCreatedAt < rollingTimeSpan)
@@ -60,7 +65,8 @@ internal static class FileLogWriterUtil
                 ? string.Empty
                 : $"_{i}";
 
-            newLogFilePath = fileSystem.Path.Combine(logsDirectory, $"{logName}_{timeProvider.GetLocalNow():yyMMdd-HHmmss}{suffix}.log");
+            newLogFilePath = fileSystem.Path.Combine(logsDirectory,
+                $"{logName}_{timeProvider.GetLocalNow():yyMMdd-HHmmss}{suffix}.log");
 
             if (!fileSystem.File.Exists(newLogFilePath))
                 break;
@@ -71,7 +77,11 @@ internal static class FileLogWriterUtil
         return true;
     }
 
-    public static void PurgeOnTotalSize(IFileSystem fileSystem, long maxTotalSizeBytes, string logsDirectory, string logName)
+    public static void PurgeOnTotalSize(
+        IFileSystem fileSystem,
+        long maxTotalSizeBytes,
+        string logsDirectory,
+        string logName)
     {
         var allLogs = fileSystem.Directory.GetFiles(logsDirectory, $"{logName}_*.log");
 
