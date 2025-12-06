@@ -4,7 +4,7 @@
 internal interface ITargets : IDotnetPackHelper, IDotnetTestHelper, INugetHelper, IGithubReleaseHelper, ISetupBuildInfo
 {
     const string FileLoggingProjectName = "DecSm.Extensions.Logging.File";
-    const string FileLoggingTestProjectName = "DecSm.Extensions.Logging.File.UnitTests";
+    const string FileLoggingTestProjectName = "DecSm.Extensions.Logging.File.Tests";
 
     [ParamDefinition("nuget-push-feed", "The Nuget feed to push to.", "https://api.nuget.org/v3/index.json")]
     string NugetFeed => GetParam(() => NugetFeed, "https://api.nuget.org/v3/index.json");
@@ -21,7 +21,7 @@ internal interface ITargets : IDotnetPackHelper, IDotnetTestHelper, INugetHelper
 
     Target TestFileLogging =>
         d => d
-            .DescribedAs("Runs the DecSm.Extensions.Logging.File.UnitTests tests")
+            .DescribedAs("Runs the DecSm.Extensions.Logging.File.Tests tests")
             .ProducesArtifact(FileLoggingTestProjectName)
             .Executes(async cancellationToken =>
             {

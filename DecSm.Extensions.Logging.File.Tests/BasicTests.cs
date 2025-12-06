@@ -1,4 +1,4 @@
-﻿namespace DecSm.Extensions.Logging.File.UnitTests;
+﻿namespace DecSm.Extensions.Logging.File.Tests;
 
 [TestFixture]
 public sealed class BasicTests : TestBase
@@ -32,7 +32,7 @@ public sealed class BasicTests : TestBase
                 .File
                 .ReadAllText(logPath)
                 .ShouldBe("""
-                          [2020-01-01 11:00:00.000 +11:00 INF DecSm.Extensions.Logging.File.UnitTests.BasicTests] Hello, world!
+                          [2020-01-01 11:00:00.000 +11:00 INF DecSm.Extensions.Logging.File.Tests.BasicTests] Hello, world!
 
                           """));
     }
@@ -59,7 +59,7 @@ public sealed class BasicTests : TestBase
                 .File
                 .ReadAllText(logPath)
                 .ShouldBe("""
-                          [2020-01-01 11:00:00.000 +11:00 INF DecSm.Extensions.Logging.File.UnitTests.BasicTests] Hello, world!
+                          [2020-01-01 11:00:00.000 +11:00 INF DecSm.Extensions.Logging.File.Tests.BasicTests] Hello, world!
 
                           """));
     }
@@ -101,10 +101,10 @@ public sealed class BasicTests : TestBase
                 .File
                 .ReadAllText(dbgLogPath)
                 .ShouldBe("""
-                          [2020-01-01 11:00:00.000 +11:00 TRC DecSm.Extensions.Logging.File.UnitTests.BasicTests] Hello, world!
-                          [2020-01-01 11:00:00.000 +11:00 DBG DecSm.Extensions.Logging.File.UnitTests.BasicTests] Hello, world!
-                          [2020-01-01 11:00:00.000 +11:00 INF DecSm.Extensions.Logging.File.UnitTests.BasicTests] Hello, world!
-                          [2020-01-01 11:00:00.000 +11:00 WRN DecSm.Extensions.Logging.File.UnitTests.BasicTests] This is an error message.
+                          [2020-01-01 11:00:00.000 +11:00 TRC DecSm.Extensions.Logging.File.Tests.BasicTests] Hello, world!
+                          [2020-01-01 11:00:00.000 +11:00 DBG DecSm.Extensions.Logging.File.Tests.BasicTests] Hello, world!
+                          [2020-01-01 11:00:00.000 +11:00 INF DecSm.Extensions.Logging.File.Tests.BasicTests] Hello, world!
+                          [2020-01-01 11:00:00.000 +11:00 WRN DecSm.Extensions.Logging.File.Tests.BasicTests] This is an error message.
 
                           """),
             fs => fs.File.Exists(errLogPath),
@@ -112,8 +112,8 @@ public sealed class BasicTests : TestBase
                 .File
                 .ReadAllText(errLogPath)
                 .ShouldBe("""
-                          [2020-01-01 11:00:00.000 +11:00 ERR DecSm.Extensions.Logging.File.UnitTests.BasicTests] This is an error message.
-                          [2020-01-01 11:00:00.000 +11:00 CRT DecSm.Extensions.Logging.File.UnitTests.BasicTests] This is an error message.
+                          [2020-01-01 11:00:00.000 +11:00 ERR DecSm.Extensions.Logging.File.Tests.BasicTests] This is an error message.
+                          [2020-01-01 11:00:00.000 +11:00 CRT DecSm.Extensions.Logging.File.Tests.BasicTests] This is an error message.
 
                           """));
     }

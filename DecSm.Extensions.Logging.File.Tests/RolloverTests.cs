@@ -1,4 +1,4 @@
-﻿namespace DecSm.Extensions.Logging.File.UnitTests;
+﻿namespace DecSm.Extensions.Logging.File.Tests;
 
 public sealed class RolloverTests : TestBase
 {
@@ -50,7 +50,7 @@ public sealed class RolloverTests : TestBase
                 .File
                 .ReadAllText(logPath)
                 .ShouldBe("""
-                          [2020-01-01 11:00:00.000 +11:00 INF DecSm.Extensions.Logging.File.UnitTests.RolloverTests] Hello, world!
+                          [2020-01-01 11:00:00.000 +11:00 INF DecSm.Extensions.Logging.File.Tests.RolloverTests] Hello, world!
 
                           """));
     }
@@ -94,7 +94,7 @@ public sealed class RolloverTests : TestBase
                 .File
                 .ReadAllText(logPath)
                 .ShouldBe("""
-                          [2020-01-01 11:00:00.000 +11:00 INF DecSm.Extensions.Logging.File.UnitTests.RolloverTests] Hello, world!
+                          [2020-01-01 11:00:00.000 +11:00 INF DecSm.Extensions.Logging.File.Tests.RolloverTests] Hello, world!
 
                           """));
     }
@@ -140,7 +140,7 @@ public sealed class RolloverTests : TestBase
                 .File
                 .ReadAllText(logPath)
                 .ShouldBe("""
-                          [2020-01-02 11:00:00.000 +11:00 INF DecSm.Extensions.Logging.File.UnitTests.RolloverTests] Hello, world!
+                          [2020-01-02 11:00:00.000 +11:00 INF DecSm.Extensions.Logging.File.Tests.RolloverTests] Hello, world!
 
                           """));
     }
@@ -197,7 +197,7 @@ public sealed class RolloverTests : TestBase
                     "Logs",
                     $"{AppDomain.CurrentDomain.FriendlyName}.log"))
                 .ShouldBe("""
-                          [2020-01-11 11:00:00.000 +11:00 INF DecSm.Extensions.Logging.File.UnitTests.RolloverTests] Hello, world!
+                          [2020-01-11 11:00:00.000 +11:00 INF DecSm.Extensions.Logging.File.Tests.RolloverTests] Hello, world!
 
                           """));
     }

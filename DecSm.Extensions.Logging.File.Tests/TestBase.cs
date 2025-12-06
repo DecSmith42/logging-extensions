@@ -1,4 +1,4 @@
-﻿namespace DecSm.Extensions.Logging.File.UnitTests;
+﻿namespace DecSm.Extensions.Logging.File.Tests;
 
 public abstract class TestBase
 {
