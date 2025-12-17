@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="DecSm.Extensions.Logging.File.Tests/DecSm.Extensions.Logging.File.Tests.csproj" />
+  <Project Path="DecSm.Extensions.Logging.File/DecSm.Extensions.Logging.File.csproj" />
+  <Project Path="_atom/_atom.csproj" />
+</Solution>
