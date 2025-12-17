@@ -1,7 +1,10 @@
 ﻿namespace DecSm.Extensions.Logging.File.Writer;
 
-internal sealed class DirectFileLogWriter(IFileSystem fileSystem, TimeProvider timeProvider, Func<FileLoggerConfiguration> getCurrentConfig)
-    : IFileLogWriter
+internal sealed class DirectFileLogWriter(
+    IFileSystem fileSystem,
+    TimeProvider timeProvider,
+    Func<FileLoggerConfiguration> getCurrentConfig
+) : IFileLogWriter
 {
     public TimeProvider TimeProvider => timeProvider;
 
@@ -70,7 +73,8 @@ internal sealed class DirectFileLogWriter(IFileSystem fileSystem, TimeProvider t
                 {
                     fileInfo.Refresh();
 
-                    fileInfo.CreationTimeUtc = fileInfo.LastWriteTimeUtc = fileInfo.LastAccessTimeUtc = timeProvider.GetUtcNow()
+                    fileInfo.CreationTimeUtc = fileInfo.LastWriteTimeUtc = fileInfo.LastAccessTimeUtc = timeProvider
+                        .GetUtcNow()
                         .DateTime;
                 }
 

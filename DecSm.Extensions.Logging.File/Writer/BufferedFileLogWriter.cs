@@ -130,7 +130,12 @@ internal sealed class BufferedFileLogWriter(
 
                         if (!newFileCreated && fileInfo.Length + logsLengthBytes >= config.FileSizeLimitBytes)
                         {
-                            FileLogWriterUtil.RollOnFileSize(fileSystem, timeProvider, logsDirectory, logName, logFilePath);
+                            FileLogWriterUtil.RollOnFileSize(fileSystem,
+                                timeProvider,
+                                logsDirectory,
+                                logName,
+                                logFilePath);
+
                             newFileCreated = true;
                         }
 
@@ -144,7 +149,10 @@ internal sealed class BufferedFileLogWriter(
                                 logFilePath);
 
                         if (newFileCreated)
-                            FileLogWriterUtil.PurgeOnTotalSize(fileSystem, config.MaxTotalSizeBytes, logsDirectory, logName);
+                            FileLogWriterUtil.PurgeOnTotalSize(fileSystem,
+                                config.MaxTotalSizeBytes,
+                                logsDirectory,
+                                logName);
 
                         FileLogWriterUtil.WriteToFile(fileSystem, logFilePath, logs);
 
@@ -154,8 +162,9 @@ internal sealed class BufferedFileLogWriter(
                         {
                             fileInfo.Refresh();
 
-                            fileInfo.CreationTimeUtc = fileInfo.LastWriteTimeUtc = fileInfo.LastAccessTimeUtc = timeProvider.GetUtcNow()
-                                .DateTime;
+                            fileInfo.CreationTimeUtc = fileInfo.LastWriteTimeUtc = fileInfo.LastAccessTimeUtc =
+                                timeProvider.GetUtcNow()
+                                    .DateTime;
                         }
 
                         break;

@@ -1,4 +1,4 @@
-﻿namespace DecSm.Extensions.Logging.File.UnitTests;
+﻿namespace DecSm.Extensions.Logging.File.Tests;
 
 public sealed class FormattingTests : TestBase
 {
@@ -23,7 +23,7 @@ public sealed class FormattingTests : TestBase
             .GetLocalNow()
             .ToString("yyyy-MM-dd HH:mm:ss.fff zzz");
 
-        const string logLevelContext = "DecSm.Extensions.Logging.File.UnitTests.FormattingTests";
+        const string logLevelContext = "DecSm.Extensions.Logging.File.Tests.FormattingTests";
 
         // Act
         logger.LogTrace("Hello, world 1!");

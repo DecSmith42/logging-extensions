@@ -1,32 +1,48 @@
 ﻿namespace Atom;
 
-[PublicAPI]
 internal interface ITargets : IDotnetPackHelper, IDotnetTestHelper, INugetHelper, IGithubReleaseHelper, ISetupBuildInfo
 {
-    const string FileLoggingProjectName = "DecSm.Extensions.Logging.File";
-    const string FileLoggingTestProjectName = "DecSm.Extensions.Logging.File.UnitTests";
+    static readonly string[] ProjectsToPack = [Projects.DecSm_Extensions_Logging_File.Name];
+    static readonly string[] ProjectsToTest = [Projects.DecSm_Extensions_Logging_File_Tests.Name];
 
-    [ParamDefinition("nuget-push-feed", "The Nuget feed to push to.", "https://api.nuget.org/v3/index.json")]
+    [ParamDefinition("test-framework", "Test framework to use for unit tests")]
+    string TestFramework => GetParam(() => TestFramework, "net10.0");
+
+    [ParamDefinition("nuget-push-feed", "The Nuget feed to push to.")]
     string NugetFeed => GetParam(() => NugetFeed, "https://api.nuget.org/v3/index.json");
 
     [SecretDefinition("nuget-push-api-key", "The API key to use to push to Nuget.")]
     string? NugetApiKey => GetParam(() => NugetApiKey);
 
-    Target PackFileLogging =>
-        d => d
-            .DescribedAs("Builds the DecSm.Extensions.Logging.File project into a NuGet package")
-            .ProducesArtifact(FileLoggingProjectName)
-            .Executes(async cancellationToken => await DotnetPackProject(new(FileLoggingProjectName), cancellationToken));
+    Target Pack =>
+        t => t
+            .DescribedAs("Packs NuGet packages")
+            .ProducesArtifacts(ProjectsToPack)
+            .Executes(async cancellationToken =>
+            {
+                foreach (var projectName in ProjectsToPack)
+                    await DotnetPackAndStage(projectName, cancellationToken: cancellationToken);
+            });
 
-    Target TestFileLogging =>
+    Target Test =>
         d => d
-            .DescribedAs("Runs the DecSm.Extensions.Logging.File.UnitTests tests")
-            .ProducesArtifact(FileLoggingTestProjectName)
+            .DescribedAs("Runs all unit tests")
+            .RequiresParam(nameof(TestFramework))
+            .ProducesArtifacts(ProjectsToTest)
             .Executes(async cancellationToken =>
             {
                 var exitCode = 0;
 
-                exitCode += await RunDotnetUnitTests(new(FileLoggingTestProjectName), cancellationToken);
+                foreach (var projectName in ProjectsToTest)
+                    exitCode += await DotnetTestAndStage(projectName,
+                        new()
+                        {
+                            TestOptions = new()
+                            {
+                                Framework = TestFramework,
+                            },
+                        },
+                        cancellationToken);
 
                 if (exitCode != 0)
                     throw new StepFailedException("One or more unit tests failed");
@@ -34,30 +50,29 @@ internal interface ITargets : IDotnetPackHelper, IDotnetTestHelper, INugetHelper
 
     Target PushToNuget =>
         d => d
-            .DescribedAs("Pushes the Atom projects to Nuget")
-            .ConsumesArtifact(nameof(PackFileLogging), FileLoggingProjectName)
-            .RequiresParam(nameof(NugetFeed))
-            .RequiresParam(nameof(NugetApiKey))
-            .Executes(async cancellationToken => await PushProject(FileLoggingProjectName,
-                NugetFeed,
-                NugetApiKey!,
-                cancellationToken: cancellationToken));
+            .DescribedAs("Pushes packages to Nuget")
+            .RequiresParam(nameof(NugetFeed), nameof(NugetApiKey))
+            .ConsumesArtifacts(nameof(Pack), ProjectsToPack)
+            .DependsOn(nameof(Test))
+            .Executes(async cancellationToken =>
+            {
+                foreach (var projectName in ProjectsToPack)
+                    await PushProject(projectName, NugetFeed, NugetApiKey!, cancellationToken: cancellationToken);
+            });
 
     Target PushToRelease =>
         d => d
-            .DescribedAs("Pushes the package to the release feed.")
+            .DescribedAs("Pushes artifacts to a GitHub release")
             .RequiresParam(nameof(GithubToken))
             .ConsumesVariable(nameof(SetupBuildInfo), nameof(BuildVersion))
-            .ConsumesArtifact(nameof(PackFileLogging), FileLoggingProjectName)
+            .RequiresParam(nameof(NugetFeed), nameof(NugetApiKey))
+            .ConsumesArtifacts(nameof(Pack), ProjectsToPack)
+            .ConsumesArtifacts(nameof(Test),
+                ProjectsToTest,
+                PlatformNames.SelectMany(platform => FrameworkNames.Select(framework => $"{platform}-{framework}")))
             .Executes(async () =>
             {
-                if (BuildVersion.IsPreRelease)
-                {
-                    Logger.LogInformation("Skipping release push for pre-release version");
-
-                    return;
-                }
-
-                await UploadArtifactToRelease(FileLoggingProjectName, $"v{BuildVersion}");
+                foreach (var projectName in ProjectsToPack.Concat(ProjectsToTest))
+                    await UploadArtifactToRelease(projectName, $"v{BuildVersion}");
             });
 }

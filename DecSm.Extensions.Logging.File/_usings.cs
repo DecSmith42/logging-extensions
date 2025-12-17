@@ -14,4 +14,4 @@ global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.Logging.Configuration;
 global using Microsoft.Extensions.Options;
 
-[assembly: InternalsVisibleTo("DecSm.Extensions.Logging.File.UnitTests")]
+[assembly: InternalsVisibleTo("DecSm.Extensions.Logging.File.Tests")]

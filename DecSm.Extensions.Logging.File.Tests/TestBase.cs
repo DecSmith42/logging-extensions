@@ -1,4 +1,4 @@
-﻿namespace DecSm.Extensions.Logging.File.UnitTests;
+﻿namespace DecSm.Extensions.Logging.File.Tests;
 
 public abstract class TestBase
 {
@@ -17,7 +17,9 @@ public abstract class TestBase
                     ? $"{customName}.log"
                     : $"{AppDomain.CurrentDomain.FriendlyName}.log");
 
-    protected ILogger CreateBuilderWithLogger<T>(Action<FileLoggerConfiguration>? configure = null, bool buffered = true)
+    protected ILogger CreateBuilderWithLogger<T>(
+        Action<FileLoggerConfiguration>? configure = null,
+        bool buffered = true)
     {
         var builder = Host.CreateApplicationBuilder();
         builder.Logging.ClearProviders();

@@ -1,5 +1,6 @@
 name: Validate
 
+permissions: { }
 on:
   workflow_dispatch:
   pull_request:
@@ -23,13 +24,13 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '10.0.x'
       
       - name: SetupBuildInfo
         id: SetupBuildInfo
         run: dotnet run --project _atom/_atom.csproj SetupBuildInfo --skip --headless
   
-  PackFileLogging:
+  Pack:
     runs-on: ubuntu-latest
     steps:
       
@@ -39,16 +40,17 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '10.0.x'
       
-      - name: PackFileLogging
-        id: PackFileLogging
-        run: dotnet run --project _atom/_atom.csproj PackFileLogging --skip --headless
+      - name: Pack
+        id: Pack
+        run: dotnet run --project _atom/_atom.csproj Pack --skip --headless
   
-  TestFileLogging:
+  Test:
     strategy:
       matrix:
         job-runs-on: [ windows-latest, ubuntu-latest, macos-latest ]
+        test-framework: [ net8.0, net9.0, net10.0 ]
     runs-on: ${{ matrix.job-runs-on }}
     steps:
       
@@ -58,17 +60,18 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-dotnet@v4
         with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: actions/setup-dotnet@v4
+        with:
           dotnet-version: '9.0.x'
       
-      - name: TestFileLogging
-        id: TestFileLogging
-        run: dotnet run --project _atom/_atom.csproj TestFileLogging --skip --headless
+      - name: Test
+        id: Test
+        run: dotnet run --project _atom/_atom.csproj Test --skip --headless
         env:
           job-runs-on: ${{ matrix.job-runs-on }}
-          build-slice: ${{ matrix.job-runs-on }}
-      
-      - name: Upload DecSm.Extensions.Logging.File.UnitTests
-        uses: actions/upload-artifact@v4
-        with:
-          name: DecSm.Extensions.Logging.File.UnitTests-${{ matrix.job-runs-on }}
-          path: "${{ github.workspace }}/.github/publish/DecSm.Extensions.Logging.File.UnitTests"
+          test-framework: ${{ matrix.test-framework }}
+          build-slice: ${{ matrix.job-runs-on }}-${{ matrix.test-framework }}

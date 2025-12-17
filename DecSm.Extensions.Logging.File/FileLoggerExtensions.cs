@@ -9,19 +9,27 @@ public static class FileLoggerExtension
 
         if (buffered)
         {
-            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, BufferedFileLoggerProvider>());
-            LoggerProviderOptions.RegisterProviderOptions<FileLoggerConfiguration, BufferedFileLoggerProvider>(builder.Services);
+            builder.Services.TryAddEnumerable(
+                ServiceDescriptor.Singleton<ILoggerProvider, BufferedFileLoggerProvider>());
+
+            LoggerProviderOptions.RegisterProviderOptions<FileLoggerConfiguration, BufferedFileLoggerProvider>(
+                builder.Services);
         }
         else
         {
             builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, DirectFileLoggerProvider>());
-            LoggerProviderOptions.RegisterProviderOptions<FileLoggerConfiguration, DirectFileLoggerProvider>(builder.Services);
+
+            LoggerProviderOptions.RegisterProviderOptions<FileLoggerConfiguration, DirectFileLoggerProvider>(
+                builder.Services);
         }
 
         return builder;
     }
 
-    public static ILoggingBuilder AddFile(this ILoggingBuilder builder, Action<FileLoggerConfiguration> configure, bool buffered = true)
+    public static ILoggingBuilder AddFile(
+        this ILoggingBuilder builder,
+        Action<FileLoggerConfiguration> configure,
+        bool buffered = true)
     {
         builder.AddFile(buffered);
         builder.Services.Configure(configure);
